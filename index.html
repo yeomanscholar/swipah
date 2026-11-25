@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#121318">
+  <meta name="description" content="Wicked fast sorting. Swipe through a folder of photos, memes or songs and sort them into tags. Your files never leave your device.">
+  <title>Swipah · Wicked fast sorting</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- ============ Landing ============ -->
+  <section id="screen-landing" class="screen landing">
+    <img class="logo" src="assets/icons/icon.svg" alt="">
+    <h1 class="wordmark">Swipah</h1>
+    <p class="tagline">Wicked fast sorting.</p>
+    <p class="explainer">Pick a folder. Swipe each photo, meme or song left, right, up or down to sort it into tags. Get a recap reel at the end. <strong>Your files never leave your device.</strong></p>
+
+    <div id="resume" class="notice resume-card" hidden>
+      <strong id="resume-title">Pick up where you left off?</strong>
+      <div id="resume-detail" class="muted small"></div>
+      <div class="row">
+        <button id="resume-go" class="btn btn-primary btn-small">Resume</button>
+        <button id="resume-drop" class="btn btn-small">Start fresh</button>
+      </div>
+    </div>
+
+    <div class="landing-actions">
+      <button id="pick" class="btn btn-primary btn-block">📂 Pick a folder</button>
+      <button id="demo" class="btn btn-block">Try the demo</button>
+    </div>
+
+    <p id="unsupported" class="notice small" hidden>
+      <strong>This browser can’t open folders yet.</strong> Swipah works with Chrome or Edge on a computer and Chrome on Android. You can still try the demo here.
+    </p>
+    <p id="android-hint" class="notice small muted" hidden>
+      <strong>Android tip:</strong> pick a subfolder like <em>Pictures/Memes</em> or <em>Download/…</em>. Android won’t let apps open the very top of Downloads or your whole storage. You’ll re-pick the folder each visit.
+    </p>
+
+    <nav class="footer-links small">
+      <button class="linkish" data-open="about">How it works</button>
+      <a href="test.html">Check my phone</a>
+      <a id="kofi-landing" href="#" target="_blank" rel="noopener">Support Swipah ☕</a>
+    </nav>
+  </section>
+
+  <!-- ============ Setup ============ -->
+  <section id="screen-setup" class="screen" hidden>
+    <div class="topbar">
+      <button class="btn btn-small btn-ghost" data-go="landing" aria-label="Back">←</button>
+      <div class="title"><span id="setup-folder">Folder</span><small>Set up your swipes</small></div>
+    </div>
+
+    <div class="panel">
+      <h2>Swipe directions <span class="muted">· each tag becomes a folder</span></h2>
+      <div class="preset-row">
+        <select id="preset" aria-label="Preset"></select>
+        <button id="preset-save" class="btn btn-small">Save as…</button>
+      </div>
+      <div id="dir-grid" class="dir-grid" style="margin-top:10px"></div>
+      <datalist id="tag-suggestions"></datalist>
+      <p class="muted small" style="margin:10px 0 0">Leave a box empty to turn that direction off. <code>_trash</code> moves files to a <code>_trash</code> folder. Nothing is ever deleted.</p>
+    </div>
+
+    <div class="panel">
+      <h2>How swiping works</h2>
+      <div class="seg" role="radiogroup" aria-label="Dismiss mode">
+        <label><input type="radio" name="mode" value="single"> One swipe &amp; next</label>
+        <label><input type="radio" name="mode" value="multi"> Tag several, then Done</label>
+      </div>
+      <p id="mode-hint" class="muted small" style="margin:8px 0 0"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Options</h2>
+      <div class="option">
+        <label for="opt-rename">Rename box<span class="hint">Type a new name as you go, e.g. <em>not-like-us</em></span></label>
+        <span class="switch"><input id="opt-rename" type="checkbox"><span></span></span>
+      </div>
+      <div class="option">
+        <label for="opt-recursive">Include subfolders<span class="hint">Your tag folders, _trash and .swipah are always skipped</span></label>
+        <span class="switch"><input id="opt-recursive" type="checkbox"><span></span></span>
+      </div>
+      <div class="option">
+        <label for="opt-toasts">Milestone cheers<span class="hint">“My boy got mad organized.”</span></label>
+        <span class="switch"><input id="opt-toasts" type="checkbox"><span></span></span>
+      </div>
+      <div class="option">
+        <label for="opt-order">Order</label>
+        <select id="opt-order" style="width:auto">
+          <option value="name">By name</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="random">Shuffle</option>
+        </select>
+      </div>
+      <div class="option" style="display:block">
+        <div style="margin-bottom:8px">File types</div>
+        <div class="chips" id="opt-types">
+          <label class="chip-check"><input type="checkbox" value="image"><span>🖼️ Images &amp; GIFs</span></label>
+          <label class="chip-check"><input type="checkbox" value="video"><span>🎬 Videos</span></label>
+          <label class="chip-check"><input type="checkbox" value="audio"><span>🎵 Songs &amp; audio</span></label>
+          <label class="chip-check"><input type="checkbox" value="other"><span>📄 Everything else</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="start-bar">
+      <button id="start" class="btn btn-primary btn-block">Start swiping</button>
+      <p id="setup-status" class="status muted small" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ============ Sorting ============ -->
+  <section id="screen-sort" class="screen sort" hidden>
+    <div class="topbar">
+      <button id="finish" class="btn btn-small" aria-label="Finish and see recap">Finish</button>
+      <div class="progress-wrap">
+        <div class="progress-text" id="progress-text">0 / 0</div>
+        <div class="progress-bar"><div id="progress-bar"></div></div>
+      </div>
+      <button id="undo" class="btn btn-small" aria-label="Undo">↶ Undo</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="edge edge-left c-left" data-edge="left"></div>
+      <div class="edge edge-right c-right" data-edge="right"></div>
+      <div class="edge edge-up c-up" data-edge="up"></div>
+      <div class="edge edge-down c-down" data-edge="down"></div>
+    </div>
+
+    <div class="rename-row" id="rename-row" hidden>
+      <input id="rename" type="text" list="name-history" placeholder="New name (optional) — e.g. not-like-us" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Rename file">
+      <span class="ext" id="rename-ext"></span>
+      <datalist id="name-history"></datalist>
+    </div>
+
+    <div class="controls" id="controls"></div>
+    <div class="controls-2">
+      <button id="skip" class="btn">Skip <span class="muted small">(tap)</span></button>
+      <button id="done" class="btn btn-primary" hidden>Done ✓</button>
+    </div>
+  </section>
+
+  <!-- ============ Recap ============ -->
+  <section id="screen-recap" class="screen" hidden>
+    <div class="recap-head">
+      <h1 id="recap-title">Nice work!</h1>
+      <p id="recap-sub" class="muted"></p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="reels"></div>
+    <div class="recap-actions">
+      <button id="keep-going" class="btn btn-primary wide" hidden>Keep sorting</button>
+      <button id="review-skipped" class="btn" hidden>Review skipped</button>
+      <button id="recap-undo" class="btn">↶ Undo last</button>
+      <button id="export" class="btn wide">🤖 Export for AI</button>
+      <button id="download-log" class="btn">Download log</button>
+      <button id="another" class="btn">Sort another folder</button>
+      <a id="kofi-recap" class="btn kofi wide" href="#" target="_blank" rel="noopener">☕ Support Swipah</a>
+    </div>
+    <p id="export-status" class="status muted small" aria-live="polite"></p>
+  </section>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lb-media" id="lb-media"></div>
+    <div class="lb-cap" id="lb-cap"></div>
+    <button class="btn" id="lb-close">Close</button>
+  </div>
+
+  <dialog id="about">
+    <h2>How Swipah works</h2>
+    <ol>
+      <li><strong>Pick a folder</strong> (Chrome/Edge, or Chrome on Android).</li>
+      <li><strong>Set your swipes:</strong> each direction is a tag, and each tag is a folder inside the one you picked.</li>
+      <li><strong>Swipe</strong> (or drag with the mouse, or use arrow keys). Files move into the tag’s folder. In “Tag several” mode, a file can get more than one tag: it moves to the first and is copied into the others.</li>
+      <li><strong>Recap:</strong> see everything you sorted, then export a bundle an AI can learn your style from.</li>
+    </ol>
+    <p><strong>Keys:</strong> <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> swipe · <kbd>Space</kbd> skip · <kbd>Z</kbd> undo · <kbd>Enter</kbd> done (multi-tag) · <kbd>R</kbd> rename · <kbd>Esc</kbd> leave rename box</p>
+    <p><strong>Private by design:</strong> Swipah runs entirely in your browser. No uploads, no accounts, no tracking. A log of your tags is saved to <code>.swipah/log.jsonl</code> in your folder.</p>
+    <p><strong>Nothing gets deleted.</strong> “Trash” is just a <code>_trash</code> folder you can empty yourself.</p>
+    <p class="muted small">Swipah <span id="about-version"></span> · MIT licensed · <a href="https://github.com/yeomanscholar/swipah" target="_blank" rel="noopener">Source on GitHub</a></p>
+    <form method="dialog"><button class="btn btn-primary btn-block">Got it</button></form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
